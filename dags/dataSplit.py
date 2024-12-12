@@ -13,15 +13,14 @@ def split_data():
 
     # going to split by timestamp as was proposed in hw1 description
     ratings = ratings.sort_values('timestamp')
-    split_index = int(len(ratings) * 0.8)
 
-    train = ratings.iloc[:int(len(ratings)) * 0.75]
+    train = ratings.iloc[:int(len(ratings) * 0.75)]
     train.to_csv(train_path, index=False)
     if len(train) == 0:
         logger.warning('ALARM: Train set is empty')
     logger.info(f'Train size is {len(train)}')
 
-    test = ratings.iloc[int(len(ratings)) * 0.75:]
+    test = ratings.iloc[int(len(ratings) * 0.75):]
     test.to_csv(test_path, index=False)
     if len(test) == 0:
         logger.warning('ALARM: Test set is empty')

@@ -13,10 +13,8 @@ BUCKET_NAME = os.getenv("BUCKET_NAME")
 
 
 def train_and_predict():
-    spark = SparkSession.builder \
-        .appName("MovieLensALS") \
-        .master("spark://spark-master:7077") \
-        .getOrCreate()
+    logger.info("Start train_and_predict")
+    spark = SparkSession.builder.appName("MyAwesomeSpark").master("spark://spark-master:7077").getOrCreate()
 
     logger.info("Configuring Spark S3 settings.")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.access.key", MINIO_ACCESS_KEY)
