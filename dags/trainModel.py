@@ -15,16 +15,24 @@ BUCKET_NAME = os.getenv("BUCKET_NAME")
 def train_and_predict():
     logger.info("Start train_and_predict")
     spark = SparkSession.builder.appName("MyAwesomeSpark").master("spark://spark-master:7077").getOrCreate()
+    # spark = SparkSession.builder.appName("MyAwesomeSpark").master("spark://localhost:7077").getOrCreate()
 
     logger.info("Configuring Spark S3 settings.")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.access.key", MINIO_ACCESS_KEY)
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.secret.key", MINIO_SECRET_KEY)
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "http://minio:9000")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.connection.ssl.enabled", "true")
+    spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.path.style.access", "true")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.attempts.maximum", "1")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.connection.establish.timeout", "5000")
     spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.connection.timeout", "10000")
+    spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    spark.sparkContext._jsc.hadoopConfiguration().set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
     spark.sparkContext.setLogLevel("WARN")
+
+    # spark = SparkSession.builder \
+    # .appName("DataProcessing") \
+    # .config("spark.jars", f"hdfs:///NECESSARY_JARS/hadoop-aws-3.2.4.jar,hdfs:///NECESSARY_JARS/aws-java-sdk-bundle-1.11.901.jar") \
 
     logger.info("Spark session created successfully.")
 
@@ -36,9 +44,11 @@ def train_and_predict():
     ])
 
     logger.info("Loading train and test datasets from MinIO.")
+    logger.info(os.getcwd())
+    logger.info(os.listdir())
     try:
-        train_data = spark.read.csv(f"s3a://{BUCKET_NAME}/train_ratings.csv", header=True, schema=schema)
-        test_data = spark.read.csv(f"s3a://{BUCKET_NAME}/test_ratings.csv", header=True, schema=schema)
+        train_data = spark.read.csv(f"s3a://{BUCKET_NAME}/train.csv", header=True, schema=schema)
+        test_data = spark.read.csv(f"s3a://{BUCKET_NAME}/test.csv", header=True, schema=schema)
     except Exception as e:
         logger.error(f"Failed to read datasets: {e}")
         spark.stop()
